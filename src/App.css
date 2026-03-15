@@ -1,38 +1,127 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
 .App {
   text-align: center;
+  padding: 40px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.dashboard {
+  max-width: 900px;
+  margin: auto;
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+h1 {
+  color: #38bdf8;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px #38bdf8;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.status {
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.alert-count {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #334155;
+  padding: 10px;
+  color: #94a3b8;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #334155;
+}
+
+tr:hover {
+  background: #334155;
+}
+
+.anomaly {
+  color: #f87171;
+  font-weight: bold;
+}
+
+.nav {
+  margin-bottom: 20px;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #38bdf8;
+  font-size: 20px;
+  margin-right: 15px;
+}
+
+.nav a:hover {
+  color: #1e40af;
+}
+
+.nav {
+  margin: 20px 0;
+}
+
+.nav a {
+  margin-right: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.nav a:hover {
+  color: #1e40af;
+}
+
+.high {
+  background-color: #ff4d4d;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.medium {
+  background-color: #ffa500;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.low {
+  background-color: #4caf50;
+  color: white;
+}
+
+.pagination{
+  margin-top:20px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+}
+
+.pagination button{
+  padding:8px 14px;
+  border:none;
+  background:#2563eb;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.pagination button:disabled{
+  background:gray;
+  cursor:not-allowed;
 }

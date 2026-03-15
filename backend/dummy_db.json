@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": "2026-03-01 12:30:15",
+    "source_ip": "192.168.1.101",
+    "destination_ip": "192.168.1.102",
+    "packet_size": 1200,
+    "protocol": "TCP",
+    "status": "Anomaly Detected 🚨"
+  },
+  {
+    "timestamp": "2026-03-01 12:30:45",
+    "source_ip": "192.168.1.103",
+    "destination_ip": "192.168.1.104",
+    "packet_size": 900,
+    "protocol": "UDP",
+    "status": "Anomaly Detected 🚨"
+  },
+  {
+    "timestamp": "2026-03-01 12:31:10",
+    "source_ip": "192.168.1.105",
+    "destination_ip": "192.168.1.106",
+    "packet_size": 1100,
+    "protocol": "HTTP",
+    "status": "Anomaly Detected 🚨"
+  }
+]
