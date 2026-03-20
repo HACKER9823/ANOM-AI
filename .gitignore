@@ -8,11 +8,16 @@ venv/
 /.pnp
 .pnp.js
 
+# Logs
+*.log
+
 # testing
 /coverage
 
 # production
 /build
+dist/
+
 
 # misc
 .DS_Store
