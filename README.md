@@ -61,6 +61,7 @@ ANOM-AI is a **Security Operations Center (SOC) dashboard** that uses **machine 
 > Automated response system (coming soon)
 ```
 
+---
 
 ## 🛠️ Tech Stack
 
@@ -90,7 +91,7 @@ ANOM-AI is a **Security Operations Center (SOC) dashboard** that uses **machine 
 ```bash
 git clone https://github.com/HACKER9823/ANOM-AI.git
 cd ANOM-AI
-
+```
 
 ### 🖥️ Backend Setup
 
@@ -105,14 +106,16 @@ venv\Scripts\activate          # Windows (CMD / PowerShell)
 
 pip install -r requirements.txt
 python app.py
-
 ```
 
 ### 🌐 Frontend Setup
+
 ```bash
 npm install
 npm start
 ```
+
+---
 
 ## 🧪 [ USAGE GUIDE ]
 
