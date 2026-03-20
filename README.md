@@ -35,6 +35,29 @@ ANOM-AI is a **Security Operations Center (SOC) dashboard** that uses **machine 
 
 ---
 
+## 🧠 [ SYSTEM OVERVIEW ]
+
+```bash
+> ANOM-AI is a real-time SOC dashboard powered by machine learning
+> Detects anomalies in network traffic
+> Provides actionable cybersecurity insights
+```
+
+---
+
+## 🚀 [ CORE CAPABILITIES ]
+
+```bash
+> Real-time packet sniffing (Scapy)
+> AI-based anomaly detection
+> SOC dashboard with live metrics
+> Alerts table with filtering & pagination
+> Severity classification system
+> Intelligent threat insights (in progress)
+> Automated response system (coming soon)
+```
+
+
 ## 🛠️ Tech Stack
 
 ### 💻 Frontend
@@ -78,3 +101,33 @@ venv\Scripts\activate          # Windows (CMD / PowerShell)
 
 pip install -r requirements.txt
 python app.py
+
+```
+
+### 🌐 Frontend Setup
+```bash
+npm install
+npm start
+```
+
+## 🧪 [ USAGE GUIDE ]
+
+```bash
+> Step 1: Start Backend Server
+cd backend
+source venv/Scripts/activate      # Git Bash / WSL
+# OR
+venv\Scripts\activate             # CMD / PowerShell
+
+python app.py
+
+> Step 2: Start Frontend Dashboard
+npm start
+
+> Step 3: Open in Browser
+http://localhost:3000
+
+> Backend runs on: http://localhost:5000
+> Frontend runs on: http://localhost:3000
+> Ensure both services are running simultaneously
+```
