@@ -11,7 +11,7 @@ body {
 }
 
 .dashboard {
-  max-width: 900px;
+  max-width: 1100px;
   margin: auto;
   background: #1e293b;
   padding: 30px;
@@ -27,13 +27,15 @@ h1 {
 
 .status {
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .alert-count {
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 20px;
 }
+
+/* ================= TABLE ================= */
 
 table {
   width: 100%;
@@ -55,73 +57,193 @@ tr:hover {
   background: #334155;
 }
 
-.anomaly {
-  color: #f87171;
-  font-weight: bold;
-}
+/* ================= RATINGS ================= */
 
-.nav {
-  margin-bottom: 20px;
-}
-
-.nav a {
-  text-decoration: none;
-  color: #38bdf8;
-  font-size: 20px;
-  margin-right: 15px;
-}
-
-.nav a:hover {
-  color: #1e40af;
-}
-
-.nav {
-  margin: 20px 0;
-}
-
-.nav a {
-  margin-right: 20px;
-  text-decoration: none;
-  font-weight: bold;
-  color: #38bdf8;
-}
-
-.nav a:hover {
-  color: #1e40af;
+.critical {
+  background-color: rgba(255, 0, 0, 0.25);
 }
 
 .high {
-  background-color: #ff4d4d;
-  color: white;
-}
-
-.medium {
-  background-color: #ffa500;
+  background-color: rgba(255, 165, 0, 0.25);
 }
 
 .low {
-  background-color: #4caf50;
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+/* ================= BADGES ================= */
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.badge.critical {
+  background: red;
   color: white;
 }
 
-.pagination{
-  margin-top:20px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:20px;
+.badge.high {
+  background: orange;
+  color: black;
 }
 
-.pagination button{
-  padding:8px 14px;
-  border:none;
-  background:#2563eb;
-  color:white;
-  border-radius:6px;
-  cursor:pointer;
+.badge.low {
+  background: #22c55e;
+  color: black;
 }
 
-.pagination button:disabled{
-  background:gray;
-  cursor:not-allowed;
+/* ================= AI SCORE ================= */
+
+.score {
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+/* ================= LSTM ================= */
+
+.lstm {
+  font-weight: bold;
+  color: #facc15;
+}
+
+/* ================= FILTER BUTTONS ================= */
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.filters button {
+  margin: 5px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #334155;
+  color: white;
+  transition: 0.2s;
+}
+
+.filters button:hover {
+  background: #475569;
+}
+
+.filters button.active {
+  background: #38bdf8;
+}
+
+/* ================= PAGINATION ================= */
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #334155;
+  color: white;
+  cursor: pointer;
+  min-width: 40px;
+  font-weight: bold;
+}
+
+.pagination button:hover {
+  background: #475569;
+}
+
+.pagination button.active {
+  background: #38bdf8;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+}
+
+
+/* ================= METRICS ================= */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.card {
+  background: #334155;
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: bold;
+  text-align: center;
+  transition: 0.3s;
+  box-shadow: 0 0 10px rgba(0, 255, 170, 0.1);
+}
+
+.card span {
+  display: block;
+  font-size: 22px;
+  margin-top: 5px;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.card.critical {
+  border-left: 5px solid red;
+}
+
+.card.high {
+  border-left: 5px solid orange;
+}
+
+.card.low {
+  border-left: 5px solid #22c55e;
+}
+
+/* ================= TABLE IMPROVEMENT ================= */
+
+table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ================= AI SCORE BAR ================= */
+
+.score {
+  position: relative;
+}
+
+.score::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(to right, #22c55e, #facc15, red);
+  border-radius: 5px;
+  opacity: 0.5;
+}
+
+/* ================= SMOOTH SCROLL ================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.medium {
+  background-color: rgba(255, 206, 86, 0.2);
+}
+
+.badge.medium {
+  background: #facc15;
+  color: black;
 }
