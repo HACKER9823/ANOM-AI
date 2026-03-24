@@ -327,3 +327,58 @@ th:nth-child(10), td:nth-child(10) { width: 130px; } /* Attack */
 .pagination button:disabled {
   opacity: 0.4;
 }
+
+/* ================= Alert Details ================= */
+
+
+.details-card {
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-title {
+  color: #38bdf8;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.alert-info {
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.alert-value {
+  color: #f1f5f9;
+}
+
+button {
+  background-color: #38bdf8;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
+
+.no-data {
+  color: #f87171;
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+.alert-info b {
+  color: #f1f5f9;
+}
+
+.alert-info span {
+  color: #38bdf8;
+}

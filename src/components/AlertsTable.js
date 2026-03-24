@@ -2,6 +2,7 @@ import React from "react";
 import AlertRow from "./AlertRow";
 import { useNavigate } from "react-router-dom";
 
+
 function AlertsTable({ alerts }) {
   const navigate = useNavigate();
 

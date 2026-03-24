@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Alerts from "./pages/Alerts";
 import Analytics from "./pages/Analytics";
 import Network from "./pages/Network"; // ✅ ADD THIS
+import AlertDetails from "./pages/AlertDetails";
 
 function App() {
   const [alerts, setAlerts] = useState([]);
@@ -44,6 +45,7 @@ function App() {
           <Routes>
             <Route path="/dashboard" element={<Dashboard alerts={alerts} status={status} />} />
             <Route path="/alerts" element={<Alerts alerts={alerts} />} />
+            <Route path="/alert/:id" element={<AlertDetails />} />
             <Route path="/analytics" element={<Analytics alerts={alerts} />} />
             <Route path="/network" element={<Network alerts={alerts} />} /> {/* ✅ */}
           </Routes>
