@@ -1,10 +1,12 @@
 import React from "react";
 
-function AlertRow({ alert }) {
+function AlertRow({ alert, onClick }) {
   const rating = alert?.rating?.toLowerCase() || "low";
 
   return (
     <tr
+      onClick={onClick}   // ✅ CLICK HANDLER
+      style={{ cursor: "pointer" }}  // ✅ UX IMPROVEMENT
       className={`
         ${rating}
         glow-${rating}

@@ -207,7 +207,13 @@ tr {
   transition: 0.3s;
 }
 
-tbody tr:hover {
+tr:hover {
+  background: rgba(56, 189, 248, 0.1);
+  transform: scale(1.01);
+  transition: 0.2s;
+}
+
+tbody {
   background: rgba(56,189,248,0.08);
 }
 
