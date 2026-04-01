@@ -1,17 +1,25 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO
+
 import numpy as np
 from sklearn.ensemble import IsolationForest
+
 from scapy.all import sniff
 from scapy.layers.inet import IP, TCP, UDP
+
 from datetime import datetime, timedelta
 import threading
+import os
 
-# Deep Learning
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+# ==============================
+# DEEP LEARNING
+# ==============================
+from tensorflow.keras.models import load_model
 
+# ==============================
+# APP SETUP
+# ==============================
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -24,18 +32,19 @@ ml_model = IsolationForest(contamination=0.05)
 ml_model.fit(X_train)
 
 # ==============================
-# DEEP LEARNING MODEL (LSTM)
+# LOAD TRAINED LSTM MODEL
 # ==============================
-lstm_model = Sequential()
-lstm_model.add(LSTM(32, input_shape=(10, 3)))
-lstm_model.add(Dense(1, activation='sigmoid'))
-lstm_model.compile(optimizer='adam', loss='binary_crossentropy')
+LSTM_MODEL_PATH = "lstm_model.h5"
+lstm_model = None
 
-# NOTE: For demo, we are NOT training (using random weights)
-# In real case, you would train this model
+if os.path.exists(LSTM_MODEL_PATH):
+    lstm_model = load_model(LSTM_MODEL_PATH)
+    print("✅ LSTM model loaded")
+else:
+    print("⚠️ No LSTM model found (running fallback)")
 
 # ==============================
-# GLOBAL DATA
+# GLOBAL STORAGE
 # ==============================
 alerts = []
 ip_stats = {}
@@ -44,6 +53,14 @@ ip_sequences = {}
 
 total_packets = 0
 MAX_ALERTS = 300
+
+# ==============================
+# NORMALIZATION (MUST MATCH TRAINING)
+# ==============================
+def normalize_features(packet_size, proto_val, packet_rate):
+    packet_size = packet_size / 2000.0
+    packet_rate = packet_rate / 50.0
+    return [packet_size, proto_val, packet_rate]
 
 # ==============================
 # ATTACK CLASSIFICATION
@@ -76,7 +93,7 @@ def process_packet(packet):
         dst_ip = packet[IP].dst
         packet_size = len(packet)
 
-        # Protocol
+        # Protocol detection
         if packet.haslayer(TCP):
             protocol = "TCP"
             proto_val = 1
@@ -88,14 +105,13 @@ def process_packet(packet):
             proto_val = 0
 
         # ==========================
-        # IP STATS
+        # RATE CALCULATION
         # ==========================
         ip_stats[src_ip] = ip_stats.get(src_ip, 0) + 1
 
         now = datetime.now()
         packet_times.setdefault(src_ip, []).append(now)
 
-        # Keep last 5 seconds
         packet_times[src_ip] = [
             t for t in packet_times[src_ip]
             if now - t < timedelta(seconds=5)
@@ -104,7 +120,7 @@ def process_packet(packet):
         packet_rate = len(packet_times[src_ip])
 
         # ==========================
-        # ML PREDICTION
+        # ML (Isolation Forest)
         # ==========================
         features = np.array([[packet_size, proto_val]])
         ml_pred = ml_model.predict(features)[0]  # -1 = anomaly
@@ -113,21 +129,22 @@ def process_packet(packet):
         # LSTM SEQUENCE BUILD
         # ==========================
         ip_sequences.setdefault(src_ip, [])
-        ip_sequences[src_ip].append([packet_size, proto_val, packet_rate])
 
-        # Keep last 10
+        norm_features = normalize_features(packet_size, proto_val, packet_rate)
+        ip_sequences[src_ip].append(norm_features)
+
         ip_sequences[src_ip] = ip_sequences[src_ip][-10:]
 
         lstm_score = 0
 
-        if len(ip_sequences[src_ip]) == 10:
+        if lstm_model and len(ip_sequences[src_ip]) == 10:
             sequence = np.array(ip_sequences[src_ip])
             sequence = sequence.reshape((1, 10, 3))
 
             lstm_score = float(lstm_model.predict(sequence, verbose=0)[0][0])
 
         # ==========================
-        # RULE-BASED
+        # RULE-BASED DETECTION
         # ==========================
         rule_trigger = (
             packet_rate > 20 or
@@ -138,18 +155,18 @@ def process_packet(packet):
         # ==========================
         # FINAL DECISION
         # ==========================
-        if ml_pred == -1 or lstm_score > 0.7 or rule_trigger:
+        if ml_pred == -1 or lstm_score > 0.6 or rule_trigger:
 
-            # Smart Score
             score = 0
+
             if ml_pred == -1:
                 score += 3
-            if lstm_score > 0.7:
+            if lstm_score > 0.6:
                 score += 5
             if packet_rate > 20:
                 score += 2
 
-            # Rating
+            # Severity rating
             if score >= 9:
                 rating = "Critical"
             elif score >= 7:
@@ -185,7 +202,7 @@ def process_packet(packet):
         print("Error:", e)
 
 # ==============================
-# SNIFF THREAD
+# SNIFFING THREAD
 # ==============================
 def start_sniffing():
     sniff(prn=process_packet, store=False)
@@ -195,7 +212,7 @@ def start_sniffing():
 # ==============================
 @app.route("/")
 def home():
-    return "ANOM-AI with Deep Learning Running 🚀"
+    return "🚀 ANOM-AI SOC Backend Running with LSTM"
 
 @app.route("/alerts")
 def get_alerts():
@@ -209,7 +226,7 @@ def stats():
     })
 
 # ==============================
-# RUN
+# RUN SERVER
 # ==============================
 if __name__ == "__main__":
     thread = threading.Thread(target=start_sniffing)
