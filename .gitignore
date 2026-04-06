@@ -18,6 +18,11 @@ venv/
 /build
 dist/
 
+#dataset
+*.csv
+
+# ML models
+*.pkl
 
 # misc
 .DS_Store
