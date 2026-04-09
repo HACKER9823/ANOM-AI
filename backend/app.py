@@ -3,7 +3,11 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 
 import numpy as np
+import pandas as pd
 import joblib
+import os
+import torch
+
 from sklearn.ensemble import IsolationForest
 
 from scapy.all import sniff
@@ -11,14 +15,6 @@ from scapy.layers.inet import IP, TCP, UDP
 
 from datetime import datetime, timedelta
 import threading
-import os
-
-# ==============================
-# OPTIONAL: CLEAN TENSORFLOW LOGS
-# ==============================
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
-from tensorflow.keras.models import load_model
 
 # ==============================
 # APP SETUP
@@ -28,28 +24,45 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # ==============================
-# LOAD ML MODEL
+# PATHS
+# ==============================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "trained_model_files")
+LSTM_DIR = os.path.join(BASE_DIR, "trained_model_files")
+
+# ==============================
+# LOAD ISOLATION MODEL
 # ==============================
 try:
-    ml_model = joblib.load("ml_model.pkl")
-    print("✅ Loaded trained ML model")
+    ml_model = joblib.load(os.path.join(MODEL_DIR, "isolation_model.pkl"))
+    scaler = joblib.load(os.path.join(MODEL_DIR, "scaler.pkl"))
+    print("✅ Isolation Forest loaded")
 except:
-    print("⚠️ Using fallback ML model")
-    X_train = np.random.normal(loc=500, scale=50, size=(1000, 2))
-    ml_model = IsolationForest(contamination=0.05)
+    print("⚠️ ML fallback")
+    X_train = np.random.normal(500, 50, (1000, 13))
+    ml_model = IsolationForest()
     ml_model.fit(X_train)
+    scaler = None
 
 # ==============================
-# LOAD LSTM MODEL
+# LOAD LSTM MODEL (PyTorch)
 # ==============================
-LSTM_MODEL_PATH = "lstm_model.h5"
-lstm_model = None
+try:
+    from models.lstm_model import LSTMModel
 
-if os.path.exists(LSTM_MODEL_PATH):
-    lstm_model = load_model(LSTM_MODEL_PATH)
-    print("✅ LSTM model loaded")
-else:
-    print("⚠️ No LSTM model found (running fallback)")
+    lstm_model = LSTMModel(input_size=6)
+    lstm_model.load_state_dict(
+        torch.load(os.path.join(LSTM_DIR, "lstm.pth"), map_location=torch.device("cpu"))
+    )
+    lstm_model.eval()
+
+    lstm_scaler = joblib.load(os.path.join(LSTM_DIR, "lstm_scaler.pkl"))
+
+    print("✅ LSTM loaded")
+except Exception as e:
+    print("⚠️ LSTM not loaded:", e)
+    lstm_model = None
+    lstm_scaler = None
 
 # ==============================
 # GLOBAL STORAGE
@@ -57,20 +70,57 @@ else:
 alerts = []
 ip_stats = {}
 packet_times = {}
-ip_sequences = {}
 ip_ports = {}
+ip_sequences = {}
 
 total_packets = 0
 MAX_ALERTS = 300
 
 # ==============================
-# NORMALIZATION
+# FEATURE ENGINEERING (ML)
 # ==============================
-def normalize_features(packet_size, proto_val, packet_rate):
+def build_features(src_ip, packet_size, proto_val, port, packet_rate, unique_ports):
+
+    flow_duration = 1
+    packet_size_zscore = (packet_size - 500) / 200 if packet_size else 0
+    rate_vs_duration_ratio = packet_rate / (flow_duration + 1)
+    large_packet_flag = 1 if packet_size > 1400 else 0
+    connection_count_per_min = packet_rate * 12
+    src_ip_frequency = ip_stats.get(src_ip, 1)
+    icmp_ratio = 0 if proto_val == 1 else 0.1
+    port_entropy = min(unique_ports / 10, 1)
+
     return [
-        packet_size / 2000.0,
-        proto_val,
-        packet_rate / 50.0
+        packet_size,
+        packet_rate,
+        flow_duration,
+        port,
+        port,
+        unique_ports,
+        port_entropy,
+        packet_size_zscore,
+        rate_vs_duration_ratio,
+        large_packet_flag,
+        connection_count_per_min,
+        src_ip_frequency,
+        icmp_ratio
+    ]
+
+# ==============================
+# FEATURE ENGINEERING (LSTM)
+# ==============================
+def build_lstm_features(packet_size, packet_rate, unique_ports):
+    port_entropy = min(unique_ports / 10, 1)
+    conn_per_min = packet_rate * 10
+    large_flag = 1 if packet_size > 1400 else 0
+
+    return [
+        packet_size,
+        packet_rate,
+        unique_ports,
+        port_entropy,
+        conn_per_min,
+        large_flag
     ]
 
 # ==============================
@@ -78,17 +128,16 @@ def normalize_features(packet_size, proto_val, packet_rate):
 # ==============================
 def classify_attack(packet_size, rate, protocol, unique_ports=0):
     if rate > 50:
-        return "DDoS / Flood Attack"
+        return "DDoS"
     elif rate > 25 and unique_ports > 10:
         return "Port Scan"
     elif packet_size > 1400:
-        return "Large Packet Attack"
+        return "Large Packet"
     elif protocol == "Other":
         return "Suspicious Protocol"
     elif rate > 15:
-        return "Brute Force / Rapid Requests"
-    else:
-        return "Generic Anomaly"
+        return "Brute Force"
+    return "Anomaly"
 
 # ==============================
 # PACKET PROCESSING
@@ -106,110 +155,105 @@ def process_packet(packet):
         dst_ip = packet[IP].dst
         packet_size = len(packet)
 
-        # --------------------------
-        # Protocol + Port Detection
-        # --------------------------
+        # Protocol
         if packet.haslayer(TCP):
             protocol = "TCP"
             proto_val = 1
             port = packet[TCP].dport
-
         elif packet.haslayer(UDP):
             protocol = "UDP"
             proto_val = 0
             port = packet[UDP].dport
-
         else:
             protocol = "Other"
             proto_val = 0
             port = 0
 
-        # --------------------------
-        # Port Tracking
-        # --------------------------
+        # Port tracking
         ip_ports.setdefault(src_ip, set()).add(port)
-
-        if len(ip_ports[src_ip]) > 20:
-            ip_ports[src_ip] = set(list(ip_ports[src_ip])[-20:])
-
         unique_ports = len(ip_ports[src_ip])
 
-        # --------------------------
-        # Packet Rate Calculation
-        # --------------------------
+        # Rate
+        now = datetime.now()
         ip_stats[src_ip] = ip_stats.get(src_ip, 0) + 1
 
-        now = datetime.now()
         packet_times.setdefault(src_ip, []).append(now)
-
         packet_times[src_ip] = [
             t for t in packet_times[src_ip]
             if now - t < timedelta(seconds=5)
         ]
-
         packet_rate = len(packet_times[src_ip])
 
-        # --------------------------
-        # LOG REAL TRAFFIC (for training)
-        # --------------------------
-        with open("traffic_log.csv", "a") as f:
-            f.write(f"{packet_size},{proto_val},{packet_rate}\n")
-
-        # --------------------------
+        # ==========================
         # ML PREDICTION
-        # --------------------------
-        features = np.array([[packet_size, proto_val]])
-        ml_pred = ml_model.predict(features)[0]
+        # ==========================
+        feature_names = [
+            "packet_size","connection_rate","flow_duration","src_port","dst_port",
+            "unique_dst_ports","port_entropy","packet_size_zscore",
+            "rate_vs_duration_ratio","large_packet_flag",
+            "connection_count_per_min","src_ip_frequency","icmp_ratio"
+        ]
 
-        # --------------------------
-        # LSTM SEQUENCE
-        # --------------------------
-        ip_sequences.setdefault(src_ip, [])
+        features = build_features(src_ip, packet_size, proto_val, port, packet_rate, unique_ports)
+        df = pd.DataFrame([features], columns=feature_names)
 
-        norm_features = normalize_features(packet_size, proto_val, packet_rate)
-        ip_sequences[src_ip].append(norm_features)
+        if scaler:
+            scaled = scaler.transform(df)
+            scaled = pd.DataFrame(scaled, columns=feature_names)
+        else:
+            scaled = df
 
-        ip_sequences[src_ip] = ip_sequences[src_ip][-10:]
+        ml_pred = ml_model.predict(scaled)[0]
+        ml_score = float(ml_model.decision_function(scaled)[0])
 
+        # ==========================
+        # LSTM PREDICTION
+        # ==========================
         lstm_score = 0
 
-        if lstm_model and len(ip_sequences[src_ip]) == 10:
-            sequence = np.array(ip_sequences[src_ip]).reshape((1, 10, 3))
-            lstm_score = float(lstm_model.predict(sequence, verbose=0)[0][0])
+        if lstm_model and lstm_scaler:
+            ip_sequences.setdefault(src_ip, [])
 
-        # --------------------------
-        # RULE DETECTION
-        # --------------------------
-        rule_trigger = (
-            packet_rate > 20 or
-            packet_size > 1500 or
-            protocol == "Other"
-        )
+            lstm_features = build_lstm_features(packet_size, packet_rate, unique_ports)
+            seq = np.array(lstm_features).reshape(1, -1)
 
-        # --------------------------
+            seq_scaled = lstm_scaler.transform(seq)[0]
+            ip_sequences[src_ip].append(seq_scaled)
+            ip_sequences[src_ip] = ip_sequences[src_ip][-10:]
+
+            if len(ip_sequences[src_ip]) == 10:
+                tensor = torch.tensor([ip_sequences[src_ip]], dtype=torch.float32)
+
+                with torch.no_grad():
+                    output = lstm_model(tensor)
+                    loss = torch.mean((tensor - output) ** 2).item()
+                    lstm_score = loss
+
+        # ==========================
+        # RULE ENGINE
+        # ==========================
+        rule_trigger = packet_rate > 20 or packet_size > 1500 or protocol == "Other"
+
+        # ==========================
         # FINAL DECISION
-        # --------------------------
-        if ml_pred == -1 or lstm_score > 0.6 or rule_trigger:
+        # ==========================
+        if ml_pred == -1 or lstm_score > 0.02 or rule_trigger:
 
             score = 0
             if ml_pred == -1:
-                score += 3
-            if lstm_score > 0.6:
-                score += 5
+                score += 4
+            if lstm_score > 0.02:
+                score += 4
             if packet_rate > 20:
                 score += 2
 
-            # Severity
+            rating = "Low"
             if score >= 9:
                 rating = "Critical"
             elif score >= 7:
                 rating = "High"
             elif score >= 5:
                 rating = "Medium"
-            else:
-                rating = "Low"
-
-            attack_type = classify_attack(packet_size, packet_rate, protocol, unique_ports)
 
             alert = {
                 "timestamp": now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -218,11 +262,11 @@ def process_packet(packet):
                 "packet_size": packet_size,
                 "protocol": protocol,
                 "packet_rate": packet_rate,
-                "ml_flag": int(ml_pred == -1),
-                "lstm_score": round(lstm_score, 2),
+                "ml_score": round(ml_score, 3),
+                "lstm_score": round(lstm_score, 4),
                 "ai_score": score,
                 "rating": rating,
-                "attack_type": attack_type
+                "attack_type": classify_attack(packet_size, packet_rate, protocol, unique_ports)
             }
 
             alerts.append(alert)
@@ -245,7 +289,7 @@ def start_sniffing():
 # ==============================
 @app.route("/")
 def home():
-    return "🚀 ANOM-AI SOC Backend Running"
+    return "🚀 ANOM-AI Running"
 
 @app.route("/alerts")
 def get_alerts():
@@ -259,7 +303,7 @@ def stats():
     })
 
 # ==============================
-# RUN SERVER (FIXED THREADING)
+# RUN
 # ==============================
 if __name__ == "__main__":
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":

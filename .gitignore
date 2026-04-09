@@ -23,6 +23,8 @@ dist/
 
 # ML models
 *.pkl
+*.pth 
+
 
 # misc
 .DS_Store
