@@ -10,8 +10,6 @@ from lstm_model import LSTMModel
 # ==============================
 # PATHS
 # ==============================
-import os
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_PATH = os.path.join(BASE_DIR, "datasets", "dataset2.csv")
@@ -97,9 +95,31 @@ for epoch in range(20):
     print(f"Epoch {epoch}, Loss: {loss.item()}")
 
 # ==============================
-# SAVE
+# CALCULATE THRESHOLD 🔥
+# ==============================
+model.eval()
+scores = []
+
+with torch.no_grad():
+    for seq in X_scaled:
+        tensor = torch.tensor([seq], dtype=torch.float32)
+        output = model(tensor)
+
+        error = torch.mean((tensor - output) ** 2).item()
+        scores.append(error)
+
+scores = np.array(scores)
+
+# 95th percentile → anomaly threshold
+threshold = np.percentile(scores, 95)
+
+print(f"✅ LSTM Threshold: {threshold}")
+
+# ==============================
+# SAVE EVERYTHING
 # ==============================
 torch.save(model.state_dict(), os.path.join(MODEL_DIR, "lstm.pth"))
 joblib.dump(scaler, os.path.join(MODEL_DIR, "lstm_scaler.pkl"))
+joblib.dump(threshold, os.path.join(MODEL_DIR, "lstm_threshold.pkl"))
 
-print("✅ LSTM trained on dataset2 & saved")
+print("✅ LSTM trained on dataset2 & saved successfully")

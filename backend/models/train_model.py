@@ -1,25 +1,26 @@
 import pandas as pd
 import joblib
 import os
-
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
 # ==============================
-# PATH SETUP
+# PATH SETUP (IMPORTANT 🔥)
 # ==============================
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-DATA_PATH = os.path.join(BASE_DIR, "datasets", "dataset2.csv")
+DATASET_PATH = os.path.join(BASE_DIR, "datasets", "dataset2.csv")
 MODEL_DIR = os.path.join(BASE_DIR, "trained_model_files")
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 # ==============================
-# LOAD DATA
+# LOAD DATASET
 # ==============================
-df = pd.read_csv(DATA_PATH)
+df = pd.read_csv(DATASET_PATH)
 
+# ==============================
+# FEATURES (MUST MATCH app.py)
+# ==============================
 features = [
     "packet_size",
     "connection_rate",
@@ -36,19 +37,13 @@ features = [
     "icmp_ratio"
 ]
 
-X = df[features].fillna(0)
+X = df[features]
 
 # ==============================
-# SCALE (IMPORTANT FIX)
+# SCALE DATA
 # ==============================
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
-
-# 🔥 FIX: keep feature names
-X_scaled = pd.DataFrame(X_scaled, columns=features)
-
-# Save scaler
-joblib.dump(scaler, os.path.join(MODEL_DIR, "scaler.pkl"))
 
 # ==============================
 # TRAIN MODEL
@@ -56,13 +51,15 @@ joblib.dump(scaler, os.path.join(MODEL_DIR, "scaler.pkl"))
 model = IsolationForest(
     n_estimators=150,
     contamination=0.15,
-    random_state=42,
-    n_jobs=-1
+    random_state=42
 )
 
 model.fit(X_scaled)
 
-# Save model
+# ==============================
+# SAVE
+# ==============================
 joblib.dump(model, os.path.join(MODEL_DIR, "isolation_model.pkl"))
+joblib.dump(scaler, os.path.join(MODEL_DIR, "scaler.pkl"))
 
-print("✅ Model trained without warnings")
+print("✅ Isolation Forest trained & saved")
