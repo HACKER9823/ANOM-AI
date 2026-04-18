@@ -11,6 +11,9 @@ import Analytics from "./pages/Analytics";
 import Network from "./pages/Network"; // ✅ ADD THIS
 import AlertDetails from "./pages/AlertDetails";
 
+import StoredAlerts from "./pages/StoredAlerts";
+
+
 function App() {
   const [alerts, setAlerts] = useState([]);
   const [status, setStatus] = useState("Connecting...");
@@ -48,6 +51,7 @@ function App() {
             <Route path="/alert/:id" element={<AlertDetails />} />
             <Route path="/analytics" element={<Analytics alerts={alerts} />} />
             <Route path="/network" element={<Network alerts={alerts} />} /> {/* ✅ */}
+            <Route path="/stored" element={<StoredAlerts />} />
           </Routes>
         </div>
       </div>

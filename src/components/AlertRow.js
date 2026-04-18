@@ -52,7 +52,14 @@ function AlertRow({ alert, onClick }) {
       </td>
 
       {/* ⚠️ ATTACK TYPE */}
-      <td>{alert.attack_type || "Unknown"}</td>
+      <td>
+        {alert.attack_type || "Unknown"}
+        {alert.repeat_count > 1 && (
+          <span style={{ marginLeft: "6px", color: "orange" }}>
+            (x{alert.repeat_count})
+          </span>
+        )}
+      </td>
     </tr>
   );
 }

@@ -1,4 +1,5 @@
 import { useLocation } from "react-router-dom";
+import Chatbot from "../components/chatbot"
 
 function AlertDetails() {
   const location = useLocation();
@@ -9,18 +10,36 @@ function AlertDetails() {
   }
 
   return (
-    <div className="details-card">
-      <h2 className="alert-title">🚨 Alert Details</h2>
-      <p className="alert-info"><b>Time:</b> <span className="alert-value">{alert.timestamp}</span></p>
-      <p className="alert-info"><b>Source IP:</b> <span className="alert-value">{alert.source_ip}</span></p>
-      <p className="alert-info"><b>Destination IP:</b> <span className="alert-value">{alert.destination_ip}</span></p>
-      <p className="alert-info"><b>Protocol:</b> <span className="alert-value">{alert.protocol}</span></p>
-      <p className="alert-info"><b>Packet Size:</b> <span className="alert-value">{alert.packet_size}</span></p>
-      <p className="alert-info"><b>AI Score:</b> <span className="alert-value">{alert.ai_score}</span></p>
-      <p className="alert-info"><b>LSTM Score:</b> <span className="alert-value">{alert.lstm_score}</span></p>
-      <p className="alert-info"><b>Rating:</b> <span className="alert-value">{alert.rating}</span></p>
-      <p className="alert-info"><b>Attack Type:</b> <span className="alert-value">{alert.attack_type}</span></p>
-      <button className="back-btn" onClick={() => window.history.back()}>⬅ Back</button>
+    <div>
+
+      {/* ===================== */}
+      {/* ALERT DETAILS CARD */}
+      {/* ===================== */}
+      <div className="details-card">
+        <h2 className="alert-title">🚨 Alert Details</h2>
+
+        <p className="alert-info"><b>Time:</b> <span className="alert-value">{alert.timestamp}</span></p>
+        <p className="alert-info"><b>Source IP:</b> <span className="alert-value">{alert.source_ip}</span></p>
+        <p className="alert-info"><b>Destination IP:</b> <span className="alert-value">{alert.destination_ip}</span></p>
+        <p className="alert-info"><b>Protocol:</b> <span className="alert-value">{alert.protocol}</span></p>
+        <p className="alert-info"><b>Packet Size:</b> <span className="alert-value">{alert.packet_size}</span></p>
+        <p className="alert-info"><b>AI Score:</b> <span className="alert-value">{alert.ai_score}</span></p>
+        <p className="alert-info"><b>LSTM Score:</b> <span className="alert-value">{alert.lstm_score}</span></p>
+        <p className="alert-info"><b>Rating:</b> <span className="alert-value">{alert.rating}</span></p>
+        <p className="alert-info"><b>Attack Type:</b> <span className="alert-value">{alert.attack_type}</span></p>
+
+        <button className="back-btn" onClick={() => window.history.back()}>
+          ⬅ Back
+        </button>
+      </div>
+
+      {/* ===================== */}
+      {/* 🧠 CHATBOT SECTION */}
+      {/* ===================== */}
+      <div style={{ marginTop: "20px" }}>
+        <Chatbot selectedAlert={alert} />
+      </div>
+
     </div>
   );
 }
