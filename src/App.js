@@ -52,6 +52,7 @@ function App() {
             <Route path="/analytics" element={<Analytics alerts={alerts} />} />
             <Route path="/network" element={<Network alerts={alerts} />} /> {/* ✅ */}
             <Route path="/stored" element={<StoredAlerts />} />
+            <Route path="/"  />
           </Routes>
         </div>
       </div>
