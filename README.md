@@ -138,3 +138,68 @@ http://localhost:3000
 > Frontend runs on: http://localhost:3000
 > Ensure both services are running simultaneously
 ```
+
+## 💡 Extras
+
+## 🤖 AI Security Assistant
+
+<p align="center">
+  <img src="https://img.shields.io/badge/AI-Security%20Assistant-purple?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Ollama-Enabled-success?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/LLM-Powered-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Real--time%20Insights-orange?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <strong>Intelligent Threat Explanation • SOC Co-Pilot • Local LLM Powered</strong>
+</p>
+
+### 🧠 AI Overview
+
+The **AI Security Assistant** is an embedded LLM-powered co-pilot that explains anomalies detected by Isolation Forest and LSTM models in natural language. It helps security analysts quickly understand threats and take action.
+
+> ⚡ Turns complex ML scores into clear, actionable security insights.
+
+---
+
+### 🚀 AI Capabilities
+
+```bash
+> Contextual alert explanations
+> Attack pattern identification
+> ML & LSTM score interpretation
+> Severity reasoning
+> Mitigation suggestions
+> Natural language Q&A
+> Educational threat insights
+
+
+
+💬 How to Use
+
+1. Go to Alerts → Click any alert
+2. Open Alert Details
+3. Scroll to AI Security Assistant
+4. Ask questions in plain English
+
+🧪 Suggested Questions
+
+"Explain this alert in simple terms"
+"Why was this marked Critical?"
+"Is this traffic dangerous?"
+"What does the LSTM score mean?"
+"Suggest mitigation steps"
+"What attack type is this?"
+
+⚙️ Setup
+
+# Start Ollama (Recommended)
+ollama run llama3.2
+
+# Backend Endpoint
+http://localhost:5000/chat   # All processing runs locally
+
+# Ollama must be running. Larger models need more RAM (16GB+ recommended)
+# Below this lower models are recommended
+
+```
